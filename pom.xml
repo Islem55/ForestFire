@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.2</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>PFE.project</groupId>
+	<artifactId>ForestFire</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ForestFire</name>
+	<description>La plateforme Web SIG de modélisation dynamique du risque d’incendie en forêt est une application destinée à l’aide à la décision dans le domaine de la prévention des incendies forestiers. Elle permet de collecter, centraliser et analyser des données climatiques et géographiques afin d’estimer le niveau de risque d’incendie pour différentes zones forestières.  Le système repose sur une carte interactive qui affiche les zones forestières sous forme de polygones, colorées selon leur niveau de risque. Le calcul du risque est exprimé par une probabilité comprise entre 0 et 1, obtenue à partir de paramètres climatiques tels que la température, l’humidité, le vent et les précipitations, ainsi que de facteurs locaux comme la proximité des routes, des habitations et l’historique des incendies.  La plateforme offre des fonctionnalités de gestion des zones, de saisie des données climatiques, de suivi de l’évolution du risque dans le temps et de visualisation via un tableau de bord contenant des indicateurs et des graphiques. Un module de calcul intelligent, basé sur une approche simple de pondération ou de régression logistique, permet d’ajuster les paramètres du modèle afin d’améliorer l’estimation du risque.  Conçue avec des technologies modernes (Angular, Spring Boot, PostgreSQL/PostGIS), l’application assure une architecture robuste, sécurisée et évolutive. Elle constitue un outil efficace pour les agents et les décideurs, facilitant la surveillance des zones sensibles et la priorisation des actions de prévention.</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
