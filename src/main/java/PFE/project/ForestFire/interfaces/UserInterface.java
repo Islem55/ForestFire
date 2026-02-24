@@ -1,20 +1,22 @@
 package PFE.project.ForestFire.interfaces;
 
+import PFE.project.ForestFire.entities.RoleEntity;
+import PFE.project.ForestFire.entities.RoleName;
 import PFE.project.ForestFire.entities.UserEntity;
 import java.util.List;
 
 public interface UserInterface {
 
-    public UserEntity adduser(UserEntity user);
+    UserEntity adduser(UserEntity user);
 
-    public String deleteUser(Long id);
+    void deleteUser(Long id);
 
-    public UserEntity updateUser(UserEntity users, Long id);
+    UserEntity updateUser(UserEntity users, Long id);
 
-    public List<UserEntity> getAllUsers();
+    List<UserEntity> getAllUsers();
 
-    public UserEntity getUserById(Long id);
+    UserEntity getUserById(Long id);
 
-    public UserEntity getUsrByName(String name);
+    List<UserEntity> getUsersByName(String name);
 
-}
+    UserEntity addUserWithRole(UserEntity user, RoleName roleName);}
