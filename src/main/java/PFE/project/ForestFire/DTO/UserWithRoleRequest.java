@@ -13,9 +13,11 @@ public class UserWithRoleRequest {
         return user;
     }
     public void setUser(UserEntity user){
+
         this.user=user;
     }
     public RoleEntity getRole(){
+
         return role;
     }
     public void setRole(RoleEntity role){

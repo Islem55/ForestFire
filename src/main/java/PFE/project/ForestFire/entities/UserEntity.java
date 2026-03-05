@@ -23,8 +23,10 @@ public class UserEntity {
 
     @NotBlank(message="Email obligatoire")
     @Email(message="Email invalide")
-    @Pattern(regexp="^[A-Za-z-9+_.-]+@gmail\\.com$",message="Email doit être @gamil.com")
-    @Column(unique=true)
+    @Pattern(
+            regexp = "^[A-Za-z0-9+_.-]+@gmail\\.com$",
+            message = "L'email doit être au format @gmail.com"
+    )    @Column(unique=true)
     private String email;
 
     @NotBlank(message="Mot de passe obligatoire")

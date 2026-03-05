@@ -75,14 +75,17 @@ public class UserController {
 
 
     @GetMapping("/findByUserName/{nom}")
-    public ResponseEntity<List<UserEntity>> findByUserName (@PathVariable String nom){
-        List<UserEntity> users =userinterface.getUsersByName(nom);
-        if(users.isEmpty()){
+    public ResponseEntity<?> findByUserName(@PathVariable String nom){
+
+        UserEntity user = userinterface.getUsersByName(nom);
+
+        if(user == null){
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
-                    .build();
+                    .body("Utilisateur non trouvé");
         }
-        return ResponseEntity.ok(users);
+
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/addUserWithRole")

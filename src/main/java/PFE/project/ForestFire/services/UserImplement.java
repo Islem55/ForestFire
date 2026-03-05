@@ -51,13 +51,12 @@ public class UserImplement implements UserInterface {
     }
 
     @Override
-    public UserEntity getUserById(Long id){
+    public UserEntity getUserById(Long id) {
         return userRepo.findById(id).orElse(null);
     }
-
     @Override
-    public List<UserEntity> getUsersByName(String nom) {
-        return userRepo.findByNom(nom);
+    public UserEntity getUsersByName(String nom) {
+        return userRepo.findByNom(nom).orElse(null);
     }
 
     @Override
