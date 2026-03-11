@@ -36,6 +36,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/secteurs/**").permitAll()
+                        .requestMatchers("/incendies/**").permitAll()
+
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

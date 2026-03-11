@@ -29,7 +29,7 @@ public class UserEntity {
     )    @Column(unique=true)
     private String email;
 
-    @NotBlank(message="Mot de passe obligatoire")
+    //@NotBlank(message="Mot de passe obligatoire")
     @Size(min=6, message="Mot de passe  doit contenir au moins 6 caractères")
     private String motDePasse;
 

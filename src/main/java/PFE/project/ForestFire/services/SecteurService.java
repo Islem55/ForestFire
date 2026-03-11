@@ -3,12 +3,15 @@ package PFE.project.ForestFire.services;
 import PFE.project.ForestFire.entities.SecteurEntity;
 import PFE.project.ForestFire.interfaces.SecteurInterface;
 import PFE.project.ForestFire.repository.SecteurRepo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 @Service
 public class SecteurService implements SecteurInterface {
+    // @Autowired est une annotation de Spring qui permet l'injection automatique des dépendances.
+// Elle demande à Spring de créer l'objet nécessaire et de l'injecter dans cette classe.
+// Cela évite de créer l'objet manuellement avec "new".
+
 
     private final SecteurRepo secteurRepo;
 

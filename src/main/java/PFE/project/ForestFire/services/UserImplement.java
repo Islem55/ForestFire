@@ -6,20 +6,22 @@ import PFE.project.ForestFire.entities.UserEntity;
 import PFE.project.ForestFire.interfaces.UserInterface;
 import PFE.project.ForestFire.repository.UserRepo;
 import PFE.project.ForestFire.repository.RoleRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+
 public class UserImplement implements UserInterface {
 
-    @Autowired
-    UserRepo userRepo;
 
-    @Autowired
-    RoleRepo roleRepo;
+    private final UserRepo userRepo;
+
+    private final RoleRepo roleRepo;
+
     @Override
     public UserEntity adduser(UserEntity users){
         return userRepo.save(users);
