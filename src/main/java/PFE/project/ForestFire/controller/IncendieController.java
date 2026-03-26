@@ -17,16 +17,16 @@ import java.util.List;
 */
 @RestController
 @RequestMapping("/incendies")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 @RequiredArgsConstructor
 public class IncendieController {
 
     private final IncendieInterface incendieInterface;
 
 
-    // Ajouter un incendie
     @PostMapping("/AjouterIncendies")
-    public ResponseEntity<IncendieEntity> addIncendie(@RequestBody IncendieEntity incendie){
+    public ResponseEntity<IncendieEntity> addIncendie(@RequestBody IncendieEntity incendie) {
+        // Grace au @PrePersist, l'entité créera son 'geom' toute seule
         IncendieEntity savedIncendie = incendieInterface.saveIncendie(incendie);
         return ResponseEntity.ok(savedIncendie);
     }
@@ -61,13 +61,13 @@ public class IncendieController {
     }
 
 
-    // Modifier incendie
+    // Modifier incendie et retourner le DTO mis à jour
     @PutMapping("/ModifierIncendie/{id}")
-    public ResponseEntity<IncendieEntity> updateIncendie(@PathVariable Long id,
-                                                         @RequestBody IncendieEntity incendie){
+    public ResponseEntity<IncendieGeoJSONDTO> updateIncendie(@PathVariable Long id,
+                                                             @RequestBody IncendieEntity incendie){
 
         IncendieEntity updated = incendieInterface.updateIncendie(id, incendie);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(IncendieMapper.toDTO(updated));
     }
 
 

@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("facteurs_importants")
 @RequiredArgsConstructor
-@CrossOrigin(origins="*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class FacteurImportantController {
     private final FacteurImportantInterface facteurImportantInterface;
 

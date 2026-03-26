@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("facteurs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class FacteurController {
 
     private final FacteurInterface facteurInterface;

@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.locationtech.jts.geom.MultiPolygon;
 
+import java.util.Date;
+import java.util.List;
+
 @Entity
 @Table(name = "Zone_Forestier")
 @Data
@@ -32,13 +35,16 @@ public class ZoneForestiereEntity {
     // Hibernate Spatial fera le lien automatiquement avec la colonne "geom"
     private MultiPolygon geom;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
     // --- RELATIONS ---
 
     @ManyToOne
     @JoinColumn(name = "secteur_id")
     private SecteurEntity secteurEntity;
 
-
+    @OneToMany(mappedBy = "zoneForestiere") // <--- Vérifie l'orthographe ici
+    private List<ResultatRisqueEntity> historiqueRisqueEntity;
 
     // Lien vers les résultats de risque
     //@OneToMany(mappedBy = "zoneForestiere")

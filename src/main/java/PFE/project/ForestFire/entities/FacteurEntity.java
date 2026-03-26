@@ -2,6 +2,8 @@ package PFE.project.ForestFire.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -21,6 +23,9 @@ public class FacteurEntity {
     private TypeFacteur typeFacteur; // TOPOGRAPHIQUE, BIOCLIMATIQUE, PROXIMITE
 
     private String unite; // ex: 'degré', 'mètre'
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
 
     @OneToMany(mappedBy = "facteurEntity", cascade = CascadeType.ALL)
     private List<FacteurImportant> facteurImportants;

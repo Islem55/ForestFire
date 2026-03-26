@@ -2,24 +2,26 @@ package PFE.project.ForestFire.mapper;
 
 import PFE.project.ForestFire.DTO.IncendieGeoJSONDTO;
 import PFE.project.ForestFire.entities.IncendieEntity;
-import org.locationtech.jts.io.WKTWriter;
+import org.locationtech.jts.io.geojson.GeoJsonWriter;
 
 public class IncendieMapper {
 
-    public static IncendieGeoJSONDTO toDTO(IncendieEntity incendie){
+    public static IncendieGeoJSONDTO toDTO(IncendieEntity entity) {
+        if (entity == null) return null;
 
         IncendieGeoJSONDTO dto = new IncendieGeoJSONDTO();
+        dto.setId(entity.getId());
+        dto.setBrightness(entity.getBrightness());
+        dto.setConfLvl(entity.getConfLvl());
+        dto.setDayNight(entity.getDayNight());
+        dto.setDtDet(entity.getDtDet());
+        dto.setHrDet(entity.getHrDet());
 
-        dto.setId(incendie.getId());
-        dto.setBrightness(incendie.getBrightness());
-        dto.setConfLvl(incendie.getConfLvl());
-        dto.setDayNight(incendie.getDayNight());
-        dto.setDtDet(incendie.getDtDet().toString());
-        dto.setHrDet(incendie.getHrDet().toString());
-
-        // conversion geometry
-        WKTWriter writer = new WKTWriter();
-        dto.setGeometry(writer.write(incendie.getGeom()));
+        // Conversion du Point en String GeoJSON
+        if (entity.getGeom() != null) {
+            GeoJsonWriter writer = new GeoJsonWriter();
+            dto.setGeometry(writer.write(entity.getGeom()));
+        }
 
         return dto;
     }

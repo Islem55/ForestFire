@@ -4,23 +4,32 @@ import lombok.Data;
 
 /**
  * DTO utilisé pour envoyer les données du secteur vers le frontend.
- * Il contient seulement les informations nécessaires pour l'affichage
- * sur la carte (Leaflet).
  *
- * - id : identifiant du secteur dans la base de données
- * - nomSecteur : nom du secteur
- * - geometry : géométrie du secteur convertie en format GeoJSON
+ * Rôle : Représente UNE SEULE ligne de la table secteur
+ * sous forme de GeoJSON — utilisé pour l'affichage sur la carte Leaflet.
  *
- * Ce DTO évite d'envoyer toute l'entité SecteurEntity et permet
- * de transformer la géométrie (MultiPolygon) en texte GeoJSON
- * que Leaflet peut lire pour afficher le secteur sur la carte.
+ * Ce DTO évite d'exposer toute l'entité SecteurEntity et transforme
+ * la géométrie (MultiPolygon JTS) en String GeoJSON lisible par Leaflet.
  */
 @Data
 public class SecteurGeoJSONDTO {
 
-    private Long id;          // Identifiant du secteur
+    // ID technique de la ligne en base
+    private Long id;
 
-    private String nomSecteur; // Nom du secteur
+    // Nom du secteur (clé logique — peut être partagé entre plusieurs lignes)
+    private String nomSecteur;
 
-    private String geometry;   // Géométrie du secteur au format GeoJSON
+    // Description du secteur
+    private String description;
+
+    // Gouvernorat de cette ligne spécifique
+    private String nomGov;
+
+    // Nom de la délégation si disponible
+    private String nomDele;
+
+    // Géométrie MultiPolygon sérialisée en GeoJSON String
+    // Ex: {"type":"MultiPolygon","coordinates":[[[[9.1,36.2],...]]]}
+    private String geometry;
 }

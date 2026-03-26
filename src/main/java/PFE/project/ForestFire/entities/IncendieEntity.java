@@ -1,13 +1,13 @@
 package PFE.project.ForestFire.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
+import org.locationtech.jts.geom.PrecisionModel;
+import java.util.Date;
 
 @Entity
 @Table(name = "incendies")
@@ -58,33 +58,23 @@ public class IncendieEntity {
     /*
      Geometrie PostGIS
     */
-
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
 
     @Column(name = "geom", columnDefinition = "geometry(Point,4326)")
     private Point geom;
 
-    // Méthode pour afficher l'heure
 
-    public String getFormattedHour() {
-
-        if (hrDet == null || hrDet.length() != 4) {
-            return hrDet;
+    // Automatisme : Transforme X,Y en Point Géométrique avant de sauvegarder
+    @PrePersist
+    @PreUpdate
+    public void generateGeom() {
+        if (this.latitude != null && this.longitude != null) {
+            GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
+            // X = Longitude, Y = Latitude
+            this.geom = factory.createPoint(new Coordinate(this.longitude, this.latitude));
         }
 
-        String h = hrDet.substring(0, 2);
-        String m = hrDet.substring(2, 4);
 
-        return h + ":" + m;
     }
-
-    public String getFormattedDate() {
-
-        if (dtDet == null) {
-            return null;
-        }
-
-        return dtDet.toString();
-    }
-
-
 }

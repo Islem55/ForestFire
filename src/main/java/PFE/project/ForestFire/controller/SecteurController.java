@@ -1,6 +1,7 @@
 package PFE.project.ForestFire.controller;
 
 import PFE.project.ForestFire.DTO.SecteurGeoJSONDTO;
+import PFE.project.ForestFire.DTO.SecteurGroupeDTO;
 import PFE.project.ForestFire.entities.SecteurEntity;
 import PFE.project.ForestFire.interfaces.SecteurInterface;
 import PFE.project.ForestFire.mapper.SecteurMapper;
@@ -11,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/secteurs")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SecteurController {
 
     private final SecteurInterface secteurInterface;
@@ -20,72 +21,64 @@ public class SecteurController {
         this.secteurInterface = secteurInterface;
     }
 
-    // Ajouter un secteur
+    // Ajouter une ligne secteur
     @PostMapping("/AjouterSecteur")
-    public ResponseEntity<SecteurEntity> ajouterSecteur(@RequestBody SecteurEntity secteur) {
-        SecteurEntity savedSecteur = secteurInterface.saveSecteur(secteur);
-        return ResponseEntity.ok(savedSecteur);
+    public ResponseEntity<SecteurEntity> ajouterSecteur(
+            @RequestBody SecteurEntity secteur) {
+        return ResponseEntity.ok(
+                secteurInterface.saveSecteur(secteur));
     }
 
-    // Afficher tous les secteurs (GeoJSON)
+    // Tous les secteurs GeoJSON plat
     @GetMapping("/AfficherToutSecteurs")
-    public ResponseEntity<List<SecteurGeoJSONDTO>> afficherToutSecteur() {
-
-        List<SecteurEntity> secteurs = secteurInterface.getAllSecteurs();
-
-        List<SecteurGeoJSONDTO> result = secteurs
-                .stream()
-                .map(SecteurMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+    public ResponseEntity<List<SecteurGeoJSONDTO>> afficherTout() {
+        return ResponseEntity.ok(
+                secteurInterface.getAllSecteurs().stream()
+                        .map(SecteurMapper::toDTO).toList());
     }
 
-    // Afficher secteur par ID (GeoJSON)
-    @GetMapping("/AfficherSecteurAvecId/{id}")
-    public ResponseEntity<SecteurGeoJSONDTO> afficherSecteur(@PathVariable Long id){
-
-        SecteurEntity secteur = secteurInterface.getSecteurById(id);
-
-        if(secteur == null){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(SecteurMapper.toDTO(secteur));
+    // ✅ Secteurs groupés par nomSecteur avec tous gouvernorats
+    @GetMapping("/AfficherSecteursGroupes")
+    public ResponseEntity<List<SecteurGroupeDTO>> afficherGroupes() {
+        return ResponseEntity.ok(
+                SecteurMapper.toGroupedDTOList(
+                        secteurInterface.getAllSecteurs()));
     }
 
-    // Filtrer par nom secteur
-    @GetMapping("/nom_secteur/{nomSecteur}")
-    public ResponseEntity<List<SecteurGeoJSONDTO>> secteurSource(@PathVariable String nomSecteur) {
-
-        List<SecteurEntity> secteurs = secteurInterface.getByNomSecteur(nomSecteur);
-
-        List<SecteurGeoJSONDTO> result = secteurs
-                .stream()
-                .map(SecteurMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+    // Modifier par ID
+    @PutMapping("/Modifier/{id}")
+    public ResponseEntity<?> modifier(
+            @PathVariable Long id,
+            @RequestBody SecteurEntity secteur) {
+        SecteurEntity existing = secteurInterface.getSecteurById(id);
+        if (existing == null) return ResponseEntity.notFound().build();
+        existing.setNomSecteur(secteur.getNomSecteur());
+        existing.setNomGov(secteur.getNomGov());
+        existing.setDescription(secteur.getDescription());
+        return ResponseEntity.ok(secteurInterface.saveSecteur(existing));
     }
 
-    // Filtrer par gouvernorat
-    @GetMapping("/gouvernorat/{nomGov}")
-    public ResponseEntity<List<SecteurGeoJSONDTO>> findByNomGov(@PathVariable String nomGov) {
-
-        List<SecteurEntity> secteurs = secteurInterface.getByGovernorate(nomGov);
-
-        List<SecteurGeoJSONDTO> result = secteurs
-                .stream()
-                .map(SecteurMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+    // ✅ Supprimer TOUTES les lignes d'un secteur par nomSecteur
+    @DeleteMapping("/SupprimerTout/{nomSecteur}")
+    public ResponseEntity<?> supprimerTout(
+            @PathVariable String nomSecteur) {
+        secteurInterface.deleteSecteurByNomSecteur(nomSecteur);
+        return ResponseEntity.ok(
+                "Secteur '" + nomSecteur + "' supprimé.");
     }
 
-    // Supprimer
+    // Supprimer une ligne par ID
     @DeleteMapping("/Supprimer/{id}")
-    public ResponseEntity<Void> deleteSecteur(@PathVariable Long id) {
+    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         secteurInterface.deleteSecteur(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/gouvernorat/{nomGov}")
+    public ResponseEntity<List<SecteurGeoJSONDTO>> parGouv(
+            @PathVariable String nomGov) {
+        return ResponseEntity.ok(
+                secteurInterface.getByGovernorate(nomGov).stream()
+                        .map(SecteurMapper::toDTO).toList());
     }
 }

@@ -3,6 +3,8 @@ package PFE.project.ForestFire.entities;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "facteur_important")
 @Data
@@ -12,6 +14,9 @@ public class FacteurImportant {
     private Long id;
 
     private Double valeur; // La valeur extraite du raster (ex: moyenne)
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone_forestiere_id")

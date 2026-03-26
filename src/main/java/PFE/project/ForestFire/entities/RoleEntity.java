@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 
 @Entity
@@ -21,6 +18,8 @@ public class RoleEntity {
     @Enumerated(EnumType.STRING)
     private RoleName roleName;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
 
     @JsonIgnore
     @OneToMany(mappedBy = "role", cascade =CascadeType.ALL)

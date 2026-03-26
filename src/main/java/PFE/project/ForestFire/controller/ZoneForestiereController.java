@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/zones-forestieres")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class ZoneForestiereController {
 
     private final ZoneForestiereInterface zoneForestiereInterface;

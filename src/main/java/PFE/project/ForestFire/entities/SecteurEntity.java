@@ -8,6 +8,10 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.MultiPolygon;
 
+import java.util.List;
+
+import java.util.Date;
+
 @Entity
 @Table(name = "secteur")
 @Getter
@@ -62,6 +66,13 @@ public class SecteurEntity {
 
     @Column(name = "nom_secteur")
     private String nomSecteur;
+
+    private String description;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date= new Date();
+
+    @OneToMany(mappedBy = "secteur", cascade = CascadeType.ALL)
+    private List<AffectationEntity> affectations;
 
     @JdbcTypeCode(SqlTypes.GEOMETRY)
     @Column(columnDefinition = "geometry(MultiPolygon,4326)")

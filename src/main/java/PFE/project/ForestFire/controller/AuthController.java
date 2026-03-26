@@ -29,7 +29,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins="*",allowedHeaders ="*")
+@CrossOrigin(origins = "*",allowedHeaders = "*")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepo userRepo;
