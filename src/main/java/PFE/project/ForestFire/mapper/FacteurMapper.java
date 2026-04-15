@@ -1,6 +1,7 @@
 package PFE.project.ForestFire.mapper;
 
 import PFE.project.ForestFire.DTO.FacteurDTO;
+import PFE.project.ForestFire.entities.DelegationEntity;
 import PFE.project.ForestFire.entities.FacteurEntity;
 import PFE.project.ForestFire.entities.FacteurImportant;
 import org.springframework.stereotype.Component;
@@ -13,27 +14,36 @@ public class FacteurMapper {
      * en un FacteurDTO (format pour le web/carte).
      */
     public FacteurDTO toDto(FacteurImportant important) {
-        if (important == null) {
-            return null;
-        }
+        if (important == null) return null;
 
         FacteurDTO dto = new FacteurDTO();
 
-        // 1. Récupération de l'ID et de la valeur de la donnée
-        dto.setId(important.getId());
+        // ✅ Fix 3 : l'ID du DTO doit être celui du FacteurEntity, pas de FacteurImportant
+        dto.setFacteurImportantId(important.getId());  // ID de la valeur extraite
         dto.setValeur(important.getValeur());
+        dto.setDateExtraction(important.getDate());
 
-        // 2. Récupération des métadonnées du facteur associé (Pente, Climat, etc.)
+        // Métadonnées du facteur associé
         FacteurEntity facteur = important.getFacteurEntity();
         if (facteur != null) {
+            dto.setId(facteur.getId());           // ✅ ID du facteur (pas de FacteurImportant)
             dto.setNom(facteur.getNom());
             dto.setCode(facteur.getCode());
             dto.setUnite(facteur.getUnite());
-
-            // Conversion de l'énumération en String pour le DTO
+            dto.setDate(facteur.getDate());
             if (facteur.getTypeFacteur() != null) {
-                dto.setType(facteur.getTypeFacteur().name());
+                dto.setTypeFacteur(facteur.getTypeFacteur());
             }
+        }
+
+        // ✅ Ajout : zone forestière associée
+        // Zone (Delegation)
+        DelegationEntity zone = important.getDelegationEntity();
+        if (zone != null) {
+            dto.setZoneId(zone.getId());
+            dto.setNomZone(
+                    zone.getNomDeleg() != null ? zone.getNomDeleg() : zone.getNomGov()
+            );
         }
 
         return dto;

@@ -15,8 +15,11 @@ public class RoleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idRole;
 
+    @Column(unique = true)
     @Enumerated(EnumType.STRING)
     private RoleName roleName;
+
+
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date date= new Date();

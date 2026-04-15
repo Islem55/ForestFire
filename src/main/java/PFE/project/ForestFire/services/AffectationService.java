@@ -18,16 +18,21 @@ public class AffectationService implements AffectationInterface {
 
     @Override
     public AffectationEntity saveAffectation(AffectationEntity affectation) {
-        // L'admin crée l'affectation entre un forestier, un secteur et une action
         return affectationRepo.save(affectation);
     }
-
+   /* @Override
+    public List<AffectationEntity> getByGestionnaire(Long gestionnaireId) {
+        return affectationRepo.findAll();
+    }*/
+    @Override
+    public List<AffectationEntity> getByGestionnaire(Long gestionnaireId) {
+        return affectationRepo.findByGestionnaireId(gestionnaireId);
+    }
     @Override
     public AffectationEntity updateAffectation(Long id, AffectationEntity details) {
         AffectationEntity existing = affectationRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Affectation non trouvée avec l'id : " + id));
 
-        // Mise à jour des champs
         existing.setForestier(details.getForestier());
         existing.setSecteur(details.getSecteur());
         existing.setAction(details.getAction());
@@ -52,5 +57,16 @@ public class AffectationService implements AffectationInterface {
     public AffectationEntity getById(Long id) {
         return affectationRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Affectation non trouvée"));
+    }
+
+    @Override
+    public List<AffectationEntity> getAffectationsByForestier(Long forestierId) {
+        return affectationRepo.findByForestierId(forestierId);
+    }
+
+    // ✅ AJOUT IMPORTANT (pour récupérer secteur du gestionnaire)
+    @Override
+    public String getSecteurByGestionnaire(Long gestionnaireId) {
+        return affectationRepo.findSecteurByGestionnaireId(gestionnaireId);
     }
 }

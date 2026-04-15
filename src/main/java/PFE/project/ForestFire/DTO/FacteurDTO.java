@@ -1,27 +1,28 @@
 package PFE.project.ForestFire.DTO;
 
+import PFE.project.ForestFire.entities.TypeFacteur;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO pour la présentation des données Raster sur la carte.
- * Regroupe les infos de FacteurEntity et les valeurs de FacteurImportant.
- */
+import java.util.Date;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class FacteurDTO {
 
-    private Long id;
+    private Long        id;
+    private String      code;
+    private String      nom;
+    private TypeFacteur typeFacteur;
+    private String      unite;
+    private Date        date;
 
-    // Informations provenant de FacteurEntity (Le type de raster)
-    private String nom;       // ex: "Pente du terrain"
-    private String code;      // ex: "SLOPE"
-    private String type;      // ex: "TOPOGRAPHIQUE"
-    private String unite;     // ex: "%", "°C", "m"
+    private Long        facteurImportantId;
+    private Double      valeur;
+    private Date        dateExtraction;
 
-    // Information provenant de FacteurImportant (La mesure réelle)
-    private Double valeur;    // ex: 15.5
-
+    private Long        zoneId;
+    private String      nomZone;
 }

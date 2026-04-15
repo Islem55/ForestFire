@@ -1,143 +1,165 @@
 package PFE.project.ForestFire.controller;
 
+import PFE.project.ForestFire.DTO.IncendieDeclarationDTO;
 import PFE.project.ForestFire.DTO.IncendieGeoJSONDTO;
 import PFE.project.ForestFire.entities.IncendieEntity;
 import PFE.project.ForestFire.interfaces.IncendieInterface;
 import PFE.project.ForestFire.mapper.IncendieMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
-/*
- Contrôleur REST pour gérer les incendies.
- Il permet de recevoir les requêtes HTTP (GET, POST, PUT, DELETE)
- et de retourner les données au format JSON.
-*/
 @RestController
 @RequestMapping("/incendies")
-@CrossOrigin(origins = "*",allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class IncendieController {
 
     private final IncendieInterface incendieInterface;
 
+    // ── Déclaration simple ───────────────────────
+    @PostMapping("/declarer")
+    public ResponseEntity<IncendieGeoJSONDTO> declarer(
+            @Valid @RequestBody IncendieDeclarationDTO dto) {
 
-    @PostMapping("/AjouterIncendies")
-    public ResponseEntity<IncendieEntity> addIncendie(@RequestBody IncendieEntity incendie) {
-        // Grace au @PrePersist, l'entité créera son 'geom' toute seule
-        IncendieEntity savedIncendie = incendieInterface.saveIncendie(incendie);
-        return ResponseEntity.ok(savedIncendie);
+        IncendieEntity incendie = IncendieMapper.toEntity(dto);
+        IncendieEntity saved = incendieInterface.saveIncendie(incendie);
+
+        return ResponseEntity.ok(IncendieMapper.toDTO(saved));
     }
 
+    // ── CRUD ─────────────────────────────────────
 
-    // Afficher tous les incendies (GeoJSON)
-    @GetMapping("/AfficherToutIncendie")
-    public ResponseEntity<List<IncendieGeoJSONDTO>> getAllIncendies(){
+    @PostMapping("/ajouter")
+    public ResponseEntity<IncendieGeoJSONDTO> ajouter(
+            @RequestBody IncendieEntity incendie) {
 
-        List<IncendieEntity> incendies = incendieInterface.getAllIncendies();
-
-        List<IncendieGeoJSONDTO> result = incendies
-                .stream()
-                .map(IncendieMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                IncendieMapper.toDTO(incendieInterface.saveIncendie(incendie))
+        );
     }
 
-
-    // Afficher incendie par ID
-    @GetMapping("/AfficherIncendieAvecID/{id}")
-    public ResponseEntity<IncendieGeoJSONDTO> getIncendieById(@PathVariable Long id){
-
-        IncendieEntity incendie = incendieInterface.getIncendieById(id);
-
-        if(incendie == null){
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(IncendieMapper.toDTO(incendie));
+    @GetMapping("/tous")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getTous() {
+        return ResponseEntity.ok(
+                incendieInterface.getAllIncendies()
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
     }
 
-
-    // Modifier incendie et retourner le DTO mis à jour
-    @PutMapping("/ModifierIncendie/{id}")
-    public ResponseEntity<IncendieGeoJSONDTO> updateIncendie(@PathVariable Long id,
-                                                             @RequestBody IncendieEntity incendie){
-
-        IncendieEntity updated = incendieInterface.updateIncendie(id, incendie);
-        return ResponseEntity.ok(IncendieMapper.toDTO(updated));
+    @GetMapping("/{id}")
+    public ResponseEntity<IncendieGeoJSONDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                IncendieMapper.toDTO(incendieInterface.getIncendieById(id))
+        );
     }
 
+    @PutMapping("/modifier/{id}")
+    public ResponseEntity<IncendieGeoJSONDTO> modifier(
+            @PathVariable Long id,
+            @RequestBody IncendieEntity incendie) {
 
-    // Supprimer incendie
-    @DeleteMapping("/SupprimerIncendie/{id}")
-    public ResponseEntity<Void> deleteIncendie(@PathVariable Long id){
+        return ResponseEntity.ok(
+                IncendieMapper.toDTO(
+                        incendieInterface.updateIncendie(id, incendie)
+                )
+        );
+    }
 
+    @DeleteMapping("/supprimer/{id}")
+    public ResponseEntity<Void> supprimer(@PathVariable Long id) {
         incendieInterface.deleteIncendie(id);
-
         return ResponseEntity.noContent().build();
     }
 
-
-    // Filtrer par jour / nuit
-    @GetMapping("/jourNuit/{dn}")
-    public ResponseEntity<List<IncendieGeoJSONDTO>> getIncendiesByDn(@PathVariable String dn){
-
-        List<IncendieEntity> incendies = incendieInterface.getIncendiesDayNight(dn);// 1. On récupère les ENTITÉS
-
-        List<IncendieGeoJSONDTO> result = incendies
-                .stream()// 2. On ouvre la liste
-                .map(IncendieMapper::toDTO)// 3. ON TRANSFORME chaque Entité en DTO
-                .toList();// 4. On crée une nouvelle liste de DTO
-
-        return ResponseEntity.ok(result);
+    // ── Historique ───────────────────────────────
+    @GetMapping("/historique")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getHistorique() {
+        return ResponseEntity.ok(
+                incendieInterface.getHistorique()
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
     }
 
+    // ── Filtres ──────────────────────────────────
 
-    // Filtrer par date
-    @GetMapping("/dateDetection/{dtDet}")
-    public ResponseEntity<List<IncendieGeoJSONDTO>> getByDate(@PathVariable String dtDet){
+    @GetMapping("/filtre/gouvernorat/{admlvl1}")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getByGouvernorat(
+            @PathVariable String admlvl1) {
 
-        List<IncendieEntity> incendies = incendieInterface.getIncendiesByDate(dtDet);
-
-        List<IncendieGeoJSONDTO> result = incendies
-                .stream()
-                .map(IncendieMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                incendieInterface.getByGouvernorat(admlvl1)
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
     }
 
+    @GetMapping("/filtre/delegation/{admlvl2}")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getByDelegation(
+            @PathVariable String admlvl2) {
 
-    // Filtrer par heure
-    @GetMapping("/heureDetection/{hrDet}")
-    public ResponseEntity<List<IncendieGeoJSONDTO>> getByHr(@PathVariable String hrDet){
-
-        List<IncendieEntity> incendies = incendieInterface.getIncendiesByHr(hrDet);
-
-        List<IncendieGeoJSONDTO> result = incendies
-                .stream()
-                .map(IncendieMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                incendieInterface.getByDelegation(admlvl2)
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
     }
 
+    @GetMapping("/filtre/pays/{country}")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getByCountry(
+            @PathVariable String country) {
 
-    // Filtrer par niveau de confiance
-    @GetMapping("/ConfLevl/{conflevl}")
-    public ResponseEntity<List<IncendieGeoJSONDTO>> getIncendiesByConfLvl(@PathVariable String conflevl){
-
-        List<IncendieEntity> incendies = incendieInterface.getIncendiesByConfLvl(conflevl);
-
-        List<IncendieGeoJSONDTO> result = incendies
-                .stream()
-                .map(IncendieMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                incendieInterface.getByCountry(country)
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
     }
 
+    @GetMapping("/filtre/surface/{minArea}")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getBySurface(
+            @PathVariable Double minArea) {
+
+        return ResponseEntity.ok(
+                incendieInterface.getBySurface(minArea)
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
+    }
+
+    @GetMapping("/filtre/date")
+    public ResponseEntity<List<IncendieGeoJSONDTO>> getByDate(
+            @RequestParam Date start,
+            @RequestParam Date end) {
+
+        return ResponseEntity.ok(
+                incendieInterface.getByDateBetween(start, end)
+                        .stream()
+                        .map(IncendieMapper::toDTO)
+                        .toList()
+        );
+    }
+
+    // ── Reverse geocoding ────────────────────────
+    @GetMapping("/gouvernorat")
+    public ResponseEntity<String> getGouvernorat(
+            @RequestParam Double lat,
+            @RequestParam Double lng) {
+
+        return ResponseEntity.ok(
+                incendieInterface.getGouvernoratFromCoord(lat, lng)
+        );
+    }
 }

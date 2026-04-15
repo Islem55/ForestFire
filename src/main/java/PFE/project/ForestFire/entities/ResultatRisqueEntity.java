@@ -17,6 +17,6 @@ public class ResultatRisqueEntity {
     private Date date= new Date();
     @ManyToOne
     @JoinColumn(name = "zone_id") // Le nom de la colonne en BDD
-    private ZoneForestiereEntity zoneForestiere; // <--- Ce nom doit être identique au mappedBy
+    private DelegationEntity delegation; // <--- Ce nom doit être identique au mappedBy
 
 }

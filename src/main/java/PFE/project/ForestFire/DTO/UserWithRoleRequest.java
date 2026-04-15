@@ -1,5 +1,6 @@
 package PFE.project.ForestFire.DTO;
 
+import PFE.project.ForestFire.entities.FileEntity;
 import lombok.Data;
 
 @Data
@@ -16,6 +17,7 @@ public class UserWithRoleRequest {
         private String motDePasse;
         private String adresse;
         private Integer telephone;
+        private FileEntity photoProfil;
     }
 
     @Data

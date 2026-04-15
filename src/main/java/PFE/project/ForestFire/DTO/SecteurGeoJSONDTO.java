@@ -22,13 +22,15 @@ public class SecteurGeoJSONDTO {
 
     // Description du secteur
     private String description;
+    private String couleur;
 
     // Gouvernorat de cette ligne spécifique
     private String nomGov;
 
     // Nom de la délégation si disponible
     private String nomDele;
-
+    private String gestionnaireNom;
+    private String gestionnairePrenom;
     // Géométrie MultiPolygon sérialisée en GeoJSON String
     // Ex: {"type":"MultiPolygon","coordinates":[[[[9.1,36.2],...]]]}
     private String geometry;

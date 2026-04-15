@@ -1,26 +1,23 @@
 package PFE.project.ForestFire.DTO;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-@Data  // ✅ génère TOUS les getters/setters automatiquement
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SecteurGroupeDTO {
 
-    // nomSecteur = clé principale d'affichage
-    private String nomSecteur;
-
-    // Premier ID technique (pour modifier)
     private Long id;
-
-    // ✅ Tous les IDs du secteur (pour supprimer toutes les lignes)
     private List<Long> ids;
-
-    // Description
-    private String description;
-
-    // ✅ Tous les gouvernorats uniques de ce secteur
+    private String nomSecteur;
     private List<String> gouvernorats;
-
-    // ✅ Nombre de gouvernorats
+    private List<String> delegations;       // ✅ délégations
     private int nombreGouvernorats;
+    private int nombreDelegations;          // ✅ nombre délégations
+    private String description;
+    private String couleur;
 }

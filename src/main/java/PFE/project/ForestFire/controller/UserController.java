@@ -9,23 +9,26 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/user")
 @RestController
-@CrossOrigin(origins = "*",allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*")
 public class UserController {
 
     @Autowired
     UserInterface userinterface;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping("/ajouter")
-    public ResponseEntity<?> addUser(@Valid @RequestBody UserEntity user){
+    public ResponseEntity<?> addUser(@RequestBody UserEntity user){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userinterface.adduser(user));
     }
-
     // ──────────────────────────────────────────
     // AJOUTER utilisateur avec rôle
     // ──────────────────────────────────────────
@@ -45,7 +48,7 @@ public class UserController {
             user.setNom(request.getUser().getNom());
             user.setPrenom(request.getUser().getPrenom());
             user.setEmail(request.getUser().getEmail());
-            user.setMotDePasse(request.getUser().getMotDePasse());
+            user.setMotDePasse(passwordEncoder.encode(request.getUser().getMotDePasse()));
             user.setAdresse(request.getUser().getAdresse());
             user.setTelephone(request.getUser().getTelephone());
 
@@ -74,27 +77,34 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UserWithRoleRequest.UserDTO dto) {
 
-        System.out.println("=== MODIFIER ID    : " + id);
-        System.out.println("=== MODIFIER NOM   : " + dto.getNom());
-        System.out.println("=== MODIFIER PASS  : " + dto.getMotDePasse());
-
         UserEntity existingUser = userinterface.getUserById(id);
         if (existingUser == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body("Utilisateur non trouvé");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
         }
 
-        // Construire UserEntity depuis DTO
-        UserEntity user = new UserEntity();
-        user.setNom(dto.getNom());
-        user.setPrenom(dto.getPrenom());
-        user.setEmail(dto.getEmail());
-        user.setMotDePasse(dto.getMotDePasse());  // null/vide = géré dans le service
-        user.setAdresse(dto.getAdresse());
-        user.setTelephone(dto.getTelephone());
+        // 1. On crée l'objet qui contiendra les modifications
+        UserEntity userUpdates = new UserEntity();
+        userUpdates.setNom(dto.getNom());
+        userUpdates.setPrenom(dto.getPrenom());
+        userUpdates.setEmail(dto.getEmail());
+        userUpdates.setAdresse(dto.getAdresse());
+        userUpdates.setTelephone(dto.getTelephone());
 
-        UserEntity updated = userinterface.updateUser(user, id);
+        // 2. Gestion du mot de passe
+        if (dto.getMotDePasse() != null && !dto.getMotDePasse().isEmpty()) {
+            userUpdates.setMotDePasse(passwordEncoder.encode(dto.getMotDePasse()));
+        } else {
+            userUpdates.setMotDePasse(existingUser.getMotDePasse());
+        }
+
+        // 3. CRUCIAL : On préserve la photo existante !
+        // Si on ne le fait pas, la photo sera supprimée (mise à null) en base
+        userUpdates.setPhotoProfil(existingUser.getPhotoProfil());
+
+        // On préserve aussi le rôle actuel s'il n'est pas dans le DTO
+        userUpdates.setRole(existingUser.getRole());
+
+        UserEntity updated = userinterface.updateUser(userUpdates, id);
         return ResponseEntity.ok(updated);
     }
 
@@ -153,5 +163,27 @@ public class UserController {
                     .body("Utilisateur non trouvé");
         }
         return ResponseEntity.ok(user);
+    }
+
+    // Ajouter cette méthode dans votre UserController existant
+    @GetMapping("/par-role/{roleName}")
+    public ResponseEntity<List<UserEntity>> getUsersByRole(@PathVariable String roleName) {
+        try {
+            RoleName role = RoleName.valueOf(roleName);
+            List<UserEntity> users = userinterface.getUsersByRole(role);
+            if (users.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            }
+            return ResponseEntity.ok(users);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @GetMapping("/par-email/{email}")
+    public ResponseEntity<?> parEmail(@PathVariable String email) {
+        UserEntity user = userinterface.getUserByEmail(email);
+        if (user == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(Map.of("id", user.getId(), "nom", user.getNom(), "email", user.getEmail()));
     }
 }

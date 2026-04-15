@@ -1,5 +1,7 @@
 package PFE.project.ForestFire.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +10,7 @@ import org.hibernate.type.SqlTypes;
 import org.locationtech.jts.geom.MultiPolygon;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "delegation")
@@ -41,16 +44,16 @@ public class DelegationEntity {
     private String govNameA;
 
     @Column(name = "Nom_gov")
-    private String nomGov;       // ← champ clé pour les gouvernorats
+    private String nomGov;
 
     @Column(name = "adm_id")
     private String admId;
 
     @Column(name = "deleg_id")
-    private Long delegId;
+    private String delegId;
 
     @Column(name = "gov_id")
-    private Long govId;
+    private String govId;
 
     @JdbcTypeCode(SqlTypes.GEOMETRY)
     @Column(columnDefinition = "geometry(MultiPolygon,4326)")
@@ -58,4 +61,23 @@ public class DelegationEntity {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date date = new Date();
+
+    @ManyToOne
+    @JoinColumn(name = "gestionnaire_id")
+    private UserEntity gestionnaire;
+
+
+    @ManyToOne
+    @JoinColumn(name = "secteur_id")
+    //@JsonIgnoreProperties({"affectations", "gestionnaire", "geom"})
+    @JsonIgnore
+
+    private SecteurEntity secteur;
+
+
+
+
+
+    //@OneToMany(mappedBy = "delegation")
+   // private List<HistoriqueRisqueEntity> historiqueRisqueEntity;
 }

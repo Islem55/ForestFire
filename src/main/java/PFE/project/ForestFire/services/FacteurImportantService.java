@@ -16,25 +16,31 @@ import java.util.stream.Collectors;
 public class FacteurImportantService implements FacteurImportantInterface {
 
     private final FacteurImportantRepo facteurImportantRepo;
-    private final FacteurMapper mapper;
+    private final FacteurMapper        mapper;
 
+    @Override
     public List<FacteurDTO> getValeursParZone(Long zoneId) {
-        return facteurImportantRepo.findByZoneForestiereEntity_Id(zoneId)
+        // ✅ Fix : utilise findByZoneId() (méthode @Query corrigée dans le repo)
+        return facteurImportantRepo.findByZoneId(zoneId)
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    @Override
     public FacteurImportant ajouterValeur(FacteurImportant entity) {
         return facteurImportantRepo.save(entity);
     }
 
+    @Override
     public void supprimerValeur(Long id) {
         facteurImportantRepo.deleteById(id);
     }
 
+    @Override
     public FacteurImportant modifierValeur(Long id, FacteurImportant facteurImportant) {
-        FacteurImportant existing = facteurImportantRepo.findById(id).orElseThrow();
+        FacteurImportant existing = facteurImportantRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("FacteurImportant non trouvé : " + id));
         existing.setValeur(facteurImportant.getValeur());
         return facteurImportantRepo.save(existing);
     }

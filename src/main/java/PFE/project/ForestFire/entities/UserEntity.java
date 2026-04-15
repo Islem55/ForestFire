@@ -1,4 +1,6 @@
 package PFE.project.ForestFire.entities;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -41,6 +43,7 @@ public class UserEntity {
     private Date dateDeCreation;
 
     @OneToMany(mappedBy = "forestier", cascade = CascadeType.ALL)
+    @JsonIgnore  // pour casser la boucle infinie
     private List<AffectationEntity> affectations;
 
     @ManyToOne
@@ -48,11 +51,19 @@ public class UserEntity {
     private RoleEntity role;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL , orphanRemoval = true)
     @JoinColumn(name = "photo_id")
     private FileEntity photoProfil;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL , orphanRemoval = true)
     @ToString.Exclude
     private List<FileEntity> rapports;
+
+    @OneToMany(mappedBy = "gestionnaire", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("gestionnaire") // ✅ évite boucle infinie
+    private List<SecteurEntity> secteurs;
+
+    @OneToMany(mappedBy = "gestionnaire")
+    @JsonIgnore
+    private List<AffectationZoneEntity> affectationsCreees;
 }

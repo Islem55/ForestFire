@@ -8,11 +8,15 @@ import PFE.project.ForestFire.repository.UserRepo;
 import PFE.project.ForestFire.repository.RoleRepo;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import static PFE.project.ForestFire.entities.RoleName.VISITEUR;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +28,37 @@ public class UserImplement implements UserInterface {
 
     private final RoleRepo roleRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
-    public UserEntity adduser(UserEntity users){
-        return userRepo.save(users);
+    public UserEntity adduser(UserEntity user) {
+        // 1. Encodage mot de passe
+        user.setMotDePasse(passwordEncoder.encode(user.getMotDePasse()));
+
+        // 2. Gestion du rôle (Sécurisée)
+        // On cherche TOUS les rôles portant ce nom au cas où il y aurait un doublon
+        List<RoleEntity> roles = roleRepo.findAllByRoleName(RoleName.VISITEUR);
+
+        RoleEntity role;
+        if (!roles.isEmpty()) {
+            // On prend le premier trouvé s'il y en a plusieurs
+            role = roles.get(0);
+        } else {
+            // On le crée s'il n'existe pas du tout
+            role = new RoleEntity();
+            role.setRoleName(RoleName.VISITEUR);
+            role = roleRepo.save(role);
+        }
+
+        user.setRole(role);
+
+        // 3. Date de création
+        if (user.getDateDeCreation() == null) {
+            user.setDateDeCreation(new Date());
+        }
+
+        return userRepo.save(user);
     }
 
     @Override
@@ -60,7 +92,7 @@ public class UserImplement implements UserInterface {
                     u.setAdresse(user.getAdresse());
                     u.setTelephone(user.getTelephone());
 
-                    // ✅ Ne changer le mot de passe QUE s'il est fourni
+                    //  Ne changer le mot de passe QUE s'il est fourni
                     if (user.getMotDePasse() != null
                             && !user.getMotDePasse().trim().isEmpty()) {
                         u.setMotDePasse(user.getMotDePasse());
@@ -97,6 +129,17 @@ public class UserImplement implements UserInterface {
         }
 
         return userRepo.save(user);
+    }
+
+
+    @Override
+    public List<UserEntity> getUsersByRole(RoleName roleName) {
+        return userRepo.findByRoleRoleName(roleName);
+    }
+
+    @Override
+    public UserEntity getUserByEmail(String email) {
+        return userRepo.findByEmail(email).orElse(null);
     }
 }
 

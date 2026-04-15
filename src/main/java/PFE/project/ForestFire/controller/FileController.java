@@ -9,108 +9,131 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLConnection;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/file")
-@CrossOrigin(origins = "*",allowedHeaders = "*")
-
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*")
 public class FileController {
 
-    // Injection de dépendance du service de gestion des fichiers
-// (permet d'accéder aux méthodes métier définies dans FileServiceInterface)
     private final FileServiceInterface fileService;
 
-    public FileController (FileServiceInterface fileService) {
-        this.fileService=fileService;
-
+    public FileController(FileServiceInterface fileService) {
+        this.fileService = fileService;
     }
-/*
+
+    // ──────────────────────────────────────────
+    // AJOUTER un fichier
+    // ──────────────────────────────────────────
     @PostMapping("/ajouter")
-    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(fileService.uploadfile(file));
+    public ResponseEntity<?> uploadFolder(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") Long userId,
+            @RequestParam(value = "name", required = false) String name) {
+
+        try {
+            String savedFilename = fileService.saveFile(file, userId, name);
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                    "message", "Fichier enregistré avec succès",
+                    "fileName", savedFilename
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Erreur lors de l'enregistrement : " + e.getMessage()
+            ));
+        }
     }
 
-    @GetMapping("/télécharger/{filename}")
-    public ResponseEntity<?> download(@PathVariable("filename") String filename) {
-        ResponseEntity<?> response=fileService.downloadfile(filename);
-        if(response.getStatusCode().equals(HttpStatus.OK)){
-            FileEntity file =(FileEntity) response.getBody();
-            return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.getContentType()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\""+file.getFileName()+"\"")
-                    .body(file.getData());
-        }
-        else{
-            return new ResponseEntity<>("ficher n'est pas trouver ",HttpStatus.NOT_FOUND);
-        }
-    }*/
-@PostMapping("/ajouter")
-public ResponseEntity<?> uploadFolder(
-        @RequestParam("file") MultipartFile file,
-        @RequestParam("userId") Long userId,
-        @RequestParam(value = "name", required = false) String name) {
-
-    String savedFilename = fileService.saveFile(file,userId, name);
-
-    return ResponseEntity.ok("File saved with name: " + savedFilename);
-}
-
-    //Il permet de lire un fichier depuis le dossier
+    // ──────────────────────────────────────────
+    // TÉLÉCHARGER un fichier (pour affichage)
+    // ──────────────────────────────────────────
     @GetMapping("/telecharger/{filename}")
-    public ResponseEntity<?> downloadFolder(@PathVariable("filename") String filename) {
+    public ResponseEntity<?> downloadFolder(@PathVariable String filename) {
 
-        byte[] fileData = fileService.afficherfile(filename);
+        try {
+            byte[] fileData = fileService.afficherfile(filename);
 
-        String mimeType = URLConnection.guessContentTypeFromName(filename);
+            String mimeType = URLConnection.guessContentTypeFromName(filename);
+            if (mimeType == null) {
+                mimeType = MediaType.APPLICATION_OCTET_STREAM.toString();
+            }
 
-        if (mimeType == null) {
-            mimeType = MediaType.APPLICATION_OCTET_STREAM.toString();
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .body(fileData);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "Fichier introuvable : " + filename
+            ));
         }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(mimeType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .body(fileData);
     }
+
+    // ──────────────────────────────────────────
+    // MODIFIER un fichier
+    // ──────────────────────────────────────────
     @PutMapping("/modifier/{filename}")
     public ResponseEntity<?> update(
             @PathVariable String filename,
             @RequestParam("userId") Long userId,
             @RequestParam("file") MultipartFile newFile) {
 
-        String updated = fileService.updateFile(filename, userId,newFile);
-        return ResponseEntity.ok("Fichier modifié : " + updated);
+        try {
+            String newFilename = fileService.updateFile(filename, userId, newFile);
+            // ✅ Retourne du JSON — corrige l'erreur Angular
+            return ResponseEntity.ok(Map.of(
+                    "message", "Fichier modifié avec succès",
+                    "fileName", newFilename
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Erreur lors de la modification : " + e.getMessage()
+            ));
+        }
     }
 
-
+    // ──────────────────────────────────────────
+    // SUPPRIMER un fichier
+    // ──────────────────────────────────────────
     @DeleteMapping("/supprimer/{filename}")
     public ResponseEntity<?> delete(@PathVariable String filename) {
-        fileService.deleteFile(filename);
-        return ResponseEntity.ok("Fichier supprimé");
+
+        try {
+            fileService.deleteFile(filename);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Fichier supprimé avec succès",
+                    "fileName", filename
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", "Erreur lors de la suppression : " + e.getMessage()
+            ));
+        }
     }
 
-
+    // ──────────────────────────────────────────
+    // AFFICHER un fichier (pour <img src="...">)
+    // ──────────────────────────────────────────
     @GetMapping("/rechercher/{filename}")
     public ResponseEntity<?> rechercher(@PathVariable String filename) {
 
-        byte[] fileData = fileService.afficherfile(filename);
+        try {
+            byte[] fileData = fileService.afficherfile(filename);
 
-        if (fileData == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Fichier non trouvé");
+            String mimeType = URLConnection.guessContentTypeFromName(filename);
+            if (mimeType == null) {
+                mimeType = MediaType.APPLICATION_OCTET_STREAM.toString();
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(mimeType))
+                    .body(fileData);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "error", "Fichier non trouvé : " + filename
+            ));
         }
-
-        String mimeType = URLConnection.guessContentTypeFromName(filename);
-
-        if (mimeType == null) {
-            mimeType = MediaType.APPLICATION_OCTET_STREAM.toString();
-        }
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(mimeType))
-                .body(fileData);
     }
-
-
-
-
 }

@@ -1,4 +1,4 @@
-package PFE.project.ForestFire.controller;
+/**package PFE.project.ForestFire.controller;
 
 import PFE.project.ForestFire.entities.AffectationEntity;
 import PFE.project.ForestFire.interfaces.AffectationInterface;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("affectations")
-@CrossOrigin(origins = "*",allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200",allowedHeaders = "*")
 public class AffectationController {
 
     @Autowired
@@ -47,5 +47,63 @@ public class AffectationController {
     @GetMapping("/toutes")
     public List<AffectationEntity> getAllAffectations() {
         return affectationInterface.getAllAffectations();
+    }
+
+    //  Voir les affectations d’un forestier
+    @GetMapping("/par-forestier/{id}")
+    public ResponseEntity<List<AffectationEntity>> getByForestier(@PathVariable Long id) {
+        return ResponseEntity.ok(affectationInterface.getAffectationsByForestier(id));
+    }
+
+
+}**/
+
+
+package PFE.project.ForestFire.controller;
+
+import PFE.project.ForestFire.entities.AffectationEntity;
+import PFE.project.ForestFire.interfaces.AffectationInterface;
+import PFE.project.ForestFire.services.AffectationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+@RestController
+@RequestMapping("/affectations")
+@CrossOrigin(origins = "*")
+public class AffectationController {
+
+    private final AffectationService service;
+
+    public AffectationController(AffectationService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public ResponseEntity<?> save(@RequestBody AffectationEntity affectation) {
+        return ResponseEntity.ok(service.saveAffectation(affectation));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<AffectationEntity>> getAll() {
+        return ResponseEntity.ok(service.getAllAffectations());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AffectationEntity> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        service.deleteAffectation(id);
+        return ResponseEntity.ok("Deleted");
+    }
+
+    // ✅ récupérer par forestier
+    @GetMapping("/forestier/{id}")
+    public ResponseEntity<List<AffectationEntity>> getByForestier(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getAffectationsByForestier(id));
     }
 }

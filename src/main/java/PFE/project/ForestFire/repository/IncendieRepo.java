@@ -2,19 +2,31 @@ package PFE.project.ForestFire.repository;
 
 import PFE.project.ForestFire.entities.IncendieEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 
-public interface IncendieRepo extends JpaRepository<IncendieEntity,Long> {
+@Repository
+public interface IncendieRepo extends JpaRepository<IncendieEntity, Long> {
 
-    List<IncendieEntity> findByConfLvl(String confLvl);
+    // ── Filtrage par dates ───────────────────────
+    List<IncendieEntity> findByInitialDate(Date initialDate);
+    List<IncendieEntity> findByFinalDate(Date finalDate);
+    List<IncendieEntity> findByInitialDateBetween(Date start, Date end);
+    // ── Filtrage administratif ───────────────────
+    List<IncendieEntity> findByAdmlvl1(String admlvl1); // gouvernorat
+    List<IncendieEntity> findByAdmlvl2(String admlvl2); // délégation
 
-    List<IncendieEntity> findByDayNight(String dayNight);
+    // ── Filtrage pays ────────────────────────────
+    List<IncendieEntity> findByCountry(String country);
 
-    List<IncendieEntity> findByDtDet(String dtDet);
+    // ── Filtrage surface ─────────────────────────
+    List<IncendieEntity> findByAreaHaGreaterThan(Double areaHa);
 
-    List<IncendieEntity> findByHrDet(String hrDet);
+    // ── Filtrage source carte ────────────────────
+    List<IncendieEntity> findByMapSource(String mapSource);
 
+    // ── Tri par date (historique) ────────────────
+    List<IncendieEntity> findAllByOrderByInitialDateDesc();
 }

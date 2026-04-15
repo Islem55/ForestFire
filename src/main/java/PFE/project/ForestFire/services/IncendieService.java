@@ -4,95 +4,140 @@ import PFE.project.ForestFire.entities.IncendieEntity;
 import PFE.project.ForestFire.interfaces.IncendieInterface;
 import PFE.project.ForestFire.repository.IncendieRepo;
 import lombok.RequiredArgsConstructor;
-import org.locationtech.jts.geom.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-
 public class IncendieService implements IncendieInterface {
 
-    private final IncendieRepo incendieRepo;
+    private final IncendieRepo incendieRepository;
+
+    // ── CRUD ─────────────────────────────────────
 
     @Override
-    // Méthode qui permet d'enregistrer un incendie dans la base de données
-    public IncendieEntity saveIncendie(IncendieEntity incendie){
-
-        // Création d'un objet GeometryFactory utilisé pour créer des objets géométriques (Point, Line, Polygon)
-        GeometryFactory geometryFactory = new GeometryFactory();
-
-        // Création d'un point géographique à partir de la longitude (X) et de la latitude (Y)
-        // Coordinate(longitude, latitude) est le format utilisé par les systèmes géographiques
-        Point point = geometryFactory.createPoint(
-                new Coordinate(incendie.getLongitude(), incendie.getLatitude())
-        );
-
-        // Définition du système de coordonnées spatial (SRID)
-        // 4326 correspond au système WGS84 utilisé par les GPS et les cartes web
-        point.setSRID(4326);
-
-        // Affectation du point géographique créé au champ "geom" de l'entité Incendie
-        // Cela représente la localisation de l'incendie dans la base de données
-        incendie.setGeom(point);
-
-        // Sauvegarde de l'entité incendie dans la base de données via le repository Spring Data JPA
-        return incendieRepo.save(incendie);
+    public IncendieEntity saveIncendie(IncendieEntity incendie) {
+        return incendieRepository.save(incendie);
     }
 
     @Override
-        /*
-    récupérer tous les incendies
-     */
-    public List<IncendieEntity> getAllIncendies(){
-        return incendieRepo.findAll();
+    public List<IncendieEntity> getAllIncendies() {
+        return incendieRepository.findAll();
     }
 
     @Override
-    public IncendieEntity getIncendieById(Long id){
-        return incendieRepo.findById(id).orElse(null);
+    public IncendieEntity getIncendieById(Long id) {
+        return incendieRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Incendie non trouvé : " + id));
     }
 
     @Override
-    public void deleteIncendie(Long id ){
-        incendieRepo.deleteById(id);
+    public IncendieEntity updateIncendie(Long id, IncendieEntity incendie) {
+        IncendieEntity existing = getIncendieById(id);
+
+        existing.setLatitude(incendie.getLatitude());
+        existing.setLongitude(incendie.getLongitude());
+
+        existing.setInitialDate(incendie.getInitialDate());
+        existing.setFinalDate(incendie.getFinalDate());
+        existing.setUpdated(incendie.getUpdated());
+
+        existing.setAreaHa(incendie.getAreaHa());
+
+        existing.setIso2(incendie.getIso2());
+        existing.setIso3(incendie.getIso3());
+        existing.setCountry(incendie.getCountry());
+
+        existing.setAdmlvl1(incendie.getAdmlvl1());
+        existing.setAdmlvl2(incendie.getAdmlvl2());
+        existing.setAdmlvl3(incendie.getAdmlvl3());
+        existing.setAdmlvl5(incendie.getAdmlvl5());
+
+        existing.setMapSource(incendie.getMapSource());
+
+        existing.setBroadleave(incendie.getBroadleave());
+        existing.setConiferous(incendie.getConiferous());
+        existing.setMixedFore(incendie.getMixedFore());
+        existing.setSclerophil(incendie.getSclerophil());
+        existing.setTransition(incendie.getTransition());
+        existing.setOtherNatu(incendie.getOtherNatu());
+        existing.setAgricultur(incendie.getAgricultur());
+        existing.setArtificial(incendie.getArtificial());
+        existing.setOtherPerc(incendie.getOtherPerc());
+        existing.setNatura2kP(incendie.getNatura2kP());
+
+        existing.setAreaCode(incendie.getAreaCode());
+        existing.setEuArea(incendie.getEuArea());
+
+        return incendieRepository.save(existing);
     }
 
     @Override
-    public IncendieEntity updateIncendie(Long id ,IncendieEntity  incendie){
-        IncendieEntity existing =incendieRepo.findById(id).orElseThrow();
-
-        existing.setBrightness(incendie.getBrightness());
-        existing.setFrp(incendie.getFrp());
-        existing.setTempT31(incendie.getTempT31());
-        existing.setType(incendie.getType());
-        existing.setConfLvl(incendie.getConfLvl());
-        return incendieRepo.save(existing);
+    public void deleteIncendie(Long id) {
+        incendieRepository.deleteById(id);
     }
 
-
+    // ── Filtres ──────────────────────────────────
 
     @Override
-    public List<IncendieEntity> getIncendiesDayNight(String dayNight){
-        return  incendieRepo.findByDayNight(dayNight);
+    public List<IncendieEntity> getByGouvernorat(String admlvl1) {
+        return incendieRepository.findByAdmlvl1(admlvl1);
     }
 
     @Override
-    public List<IncendieEntity> getIncendiesByConfLvl(String confLvl){
-        return incendieRepo.findByConfLvl(confLvl);
-    }
-
-
-    @Override
-    public List<IncendieEntity> getIncendiesByDate(String dtDet){
-        return incendieRepo.findByDtDet(dtDet);
+    public List<IncendieEntity> getByDelegation(String admlvl2) {
+        return incendieRepository.findByAdmlvl2(admlvl2);
     }
 
     @Override
-    public List<IncendieEntity> getIncendiesByHr(String hrDet){
-        return  incendieRepo.findByHrDet(hrDet);
+    public List<IncendieEntity> getByCountry(String country) {
+        return incendieRepository.findByCountry(country);
+    }
+
+    @Override
+    public List<IncendieEntity> getBySurface(Double minArea) {
+        return incendieRepository.findByAreaHaGreaterThan(minArea);
+    }
+
+    @Override
+    public List<IncendieEntity> getHistorique() {
+        return incendieRepository.findAllByOrderByInitialDateDesc();
+    }
+
+    @Override
+    public List<IncendieEntity> getByDateBetween(Date start, Date end) {
+        return incendieRepository.findByInitialDateBetween(start, end);
+    }
+
+    // ── Reverse Geocoding ────────────────────────
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String getGouvernoratFromCoord(Double lat, Double lng) {
+        try {
+            String url = String.format(
+                    "https://nominatim.openstreetmap.org/reverse?lat=%s&lon=%s&format=json",
+                    lat, lng
+            );
+
+            RestTemplate restTemplate = new RestTemplate();
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+
+            if (response != null && response.containsKey("address")) {
+                Map<String, String> address = (Map<String, String>) response.get("address");
+
+                if (address.containsKey("state")) return address.get("state");
+                if (address.containsKey("county")) return address.get("county");
+            }
+
+        } catch (Exception e) {
+            return "Inconnu";
+        }
+
+        return "Inconnu";
     }
 }

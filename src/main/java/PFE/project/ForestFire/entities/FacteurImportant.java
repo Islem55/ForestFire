@@ -20,7 +20,7 @@ public class FacteurImportant {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone_forestiere_id")
-    private ZoneForestiereEntity zoneForestiereEntity;
+    private DelegationEntity delegationEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "facteur_id")

@@ -11,6 +11,8 @@ public class DelegationMapper {
         dto.setId(d.getId());
         dto.setNomDeleg(d.getNomDeleg());
         dto.setNomGov(d.getNomGov());
+        dto.setDelegNa1(d.getDelegNa1());
+
         if (d.getGeom() != null) {
             GeoJsonWriter writer = new GeoJsonWriter();
             dto.setGeometry(writer.write(d.getGeom()));

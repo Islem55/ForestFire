@@ -1,8 +1,10 @@
 package PFE.project.ForestFire.services;
 
+import PFE.project.ForestFire.entities.UserEntity;
 import PFE.project.ForestFire.interfaces.FileServiceInterface;
 import PFE.project.ForestFire.entities.FileEntity;
 import PFE.project.ForestFire.repository.FileRepository;
+import PFE.project.ForestFire.repository.UserRepo; // Import gardé
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -23,13 +25,15 @@ public class FileServiceImplement implements FileServiceInterface {
 
     private static  final Logger LOGGER= LoggerFactory.getLogger(FileServiceImplement.class.getName());
     private final FileRepository fileRepository;
+    private final UserRepo userRepo;
 
 
-    public FileServiceImplement(FileRepository fileRepository) {
+    public FileServiceImplement(FileRepository fileRepository, UserRepo userRepo) {
         this.fileRepository = fileRepository;
+        this.userRepo = userRepo;
     }
-/**Enregistre le contenu complet du fichier directement DANS la base de données.**/
-  /*  @Override
+    /**Enregistre le contenu complet du fichier directement DANS la base de données.**/
+  /* @Override
     public ResponseEntity<?> uploadfile(MultipartFile file){
 
         try {
@@ -94,14 +98,19 @@ public class FileServiceImplement implements FileServiceInterface {
         }
     }
 */
-    Path imagePath1= Paths.get("uploads/pdf");
-    Path imagePath2= Paths.get("uploads/images");
+    Path imagePath1 = Paths.get(System.getProperty("user.dir"), "uploads", "pdf");
+    Path imagePath2 = Paths.get(System.getProperty("user.dir"), "uploads", "images");
+
+
     /** Enregistre le fichier PHYSIQUEMENT sur le disque dur du serveur avec un nom aléatoire.
 
      * Utilité : Évite d'alourdir la base de données en utilisant le système de fichiers (plus performant).
 
      **/
-    @Override
+
+
+    /**@Override
+    @Transactional // Ajouté pour lier l'user
     public String saveFile(MultipartFile file,Long userId, String customName){
 
         try {
@@ -135,7 +144,13 @@ public class FileServiceImplement implements FileServiceInterface {
             }
 
             // Sauvegarde DB
-            fileRepository.save(newfile);
+            FileEntity savedFile = fileRepository.save(newfile);
+
+            // LIEN AVEC L'UTILISATEUR
+            userRepo.findById(userId).ifPresent(user -> {
+                user.setPhotoProfil(savedFile);
+                userRepo.save(user);
+            });
 
             return finalName;
 
@@ -143,6 +158,48 @@ public class FileServiceImplement implements FileServiceInterface {
             throw new RuntimeException(e);
         }
     }
+**/
+    @Override
+    @Transactional
+    public String saveFile(MultipartFile file, Long userId, String customName) {
+        try {
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || !originalFilename.contains(".")) {
+                throw new RuntimeException("Nom fichier invalide");
+            }
+
+            String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+
+            // MODIFICATION ICI : On ajoute toujours un timestamp pour forcer l'unicité
+            // et éviter les problèmes de cache navigateur.
+            String finalName = "user_" + userId + "_" + System.currentTimeMillis() + extension;
+
+            // Création de l'entité File
+            FileEntity newfile = new FileEntity();
+            newfile.setFileName(finalName);
+
+            // Sauvegarde physique sur le disque
+            Path targetPath = extension.equals(".pdf") ? imagePath1 : imagePath2;
+            Files.createDirectories(targetPath); // Crée le dossier s'il n'existe pas
+            Files.copy(file.getInputStream(), targetPath.resolve(finalName), StandardCopyOption.REPLACE_EXISTING);
+
+            // Sauvegarde en Base de données
+            FileEntity savedFile = fileRepository.save(newfile);
+
+            // LIEN AVEC L'UTILISATEUR
+            userRepo.findById(userId).ifPresent(user -> {
+                user.setPhotoProfil(savedFile);
+                userRepo.save(user);
+            });
+
+            return finalName;
+
+        } catch (Exception e) {
+            log.error("Erreur saveFile: ", e);
+            throw new RuntimeException("Erreur lors de l'enregistrement : " + e.getMessage());
+        }
+    }
+
 
     @Override
     public byte[] afficherfile(String fileName) {
@@ -170,7 +227,7 @@ public class FileServiceImplement implements FileServiceInterface {
         }
     }
 
-
+/**
 
     @Override
     public String updateFile(String oldFileName,Long userId, MultipartFile newFile) {
@@ -189,6 +246,31 @@ public class FileServiceImplement implements FileServiceInterface {
             throw new RuntimeException("Erreur update fichier", e);
         }
     }
+**/
+    @Transactional // Ajoute ceci pour assurer la cohérence
+
+
+    public String updateFile(String filename, Long userId, MultipartFile newFile) {
+   // 1. Récupérer l'utilisateur
+UserEntity user = userRepo.findById(userId)
+                      .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+// 2. Identifier l'ancienne photo
+FileEntity anciennePhoto = user.getPhotoProfil();
+
+if (anciennePhoto != null) {
+         // 3. Détacher la photo de l'utilisateur d'abord
+user.setPhotoProfil(null);
+userRepo.saveAndFlush(user); // Force la mise à jour en base immédiatement
+
+         // 4. Maintenant on peut supprimer l'ancien fichier sans erreur SQL
+this.deleteFile(anciennePhoto.getFileName());
+}
+
+     // 5. Sauvegarder le nouveau fichier
+String newFilename = this.saveFile(newFile, userId, null);
+
+return newFilename;
+}
 
     @Override
     @Transactional // Ajouté pour garantir que si un truc échoue, rien n'est supprimé
@@ -221,4 +303,3 @@ public class FileServiceImplement implements FileServiceInterface {
 
 
 }
-

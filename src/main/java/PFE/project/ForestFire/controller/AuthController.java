@@ -29,7 +29,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*",allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:4200",allowedHeaders = "*")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepo userRepo;
@@ -65,29 +65,65 @@ public class AuthController {
                         return roleRepo.save(newRole);
                     });
 
+
             adminUser.setRole(adminRole);
 
             userRepo.save(adminUser);
         }
     }
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-        try{
+        try {
+            System.out.println("1. Tentative de connexion pour : " + loginDTO.getEmail());
+
+            // ÉTAPE CRITIQUE : L'authentification
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginDTO.getEmail(),
                             loginDTO.getMotDePasse()
                     )
             );
+            System.out.println("2. Authentification réussie !");
+
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserDetails userDetails= (UserDetails) authentication.getPrincipal();
+
+            System.out.println("3. Génération du token...");
             String token = jwtGenerator.generateToken(authentication);
+
+            System.out.println("4. Recherche de l'utilisateur en base...");
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             UserEntity user = userRepo.findByEmail(userDetails.getUsername()).orElse(null);
+
+            if (user == null) {
+                System.out.println("ERREUR : Utilisateur authentifié mais non trouvé dans userRepo !");
+            }
+
             AuthResponseDTO authResponseDTO = new AuthResponseDTO(token, user);
+            System.out.println("5. Login terminé avec succès.");
+
             return new ResponseEntity<>(authResponseDTO, HttpStatus.OK);
-        }catch (Exception e){
-            return new ResponseEntity<>("Email ou mot de passe invalide", HttpStatus.UNAUTHORIZED);
+
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            System.out.println("ERREUR : Mauvais mot de passe (BadCredentialsException)");
+            return new ResponseEntity<>("Mot de passe incorrect", HttpStatus.UNAUTHORIZED);
+        } catch (org.springframework.security.core.userdetails.UsernameNotFoundException e) {
+            System.out.println("ERREUR : Email non trouvé (UsernameNotFoundException)");
+            return new ResponseEntity<>("Email inexistant", HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            System.out.println("ERREUR INCONNUE : " + e.getClass().getName());
+            e.printStackTrace();
+            return new ResponseEntity<>("Erreur serveur : " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout() {
+        // Nettoyer le contexte de sécurité de Spring
+        SecurityContextHolder.clearContext();
+        return new ResponseEntity<>("Déconnexion réussie", HttpStatus.OK);
+    }
+
+
+
 }
